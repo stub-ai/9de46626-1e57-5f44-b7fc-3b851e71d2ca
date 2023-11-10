@@ -1,9 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const Calculator = () => {
   const [input, setInput] = useState("");
   const [result, setResult] = useState(0);
   const [log, setLog] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetch('/api/calculator')
+      .then(res => res.json())
+      .then(data => setLog(data.log))
+  }, [])
 
   const handleInput = (value: string) => {
     setInput((prev) => prev + value);
@@ -13,7 +19,15 @@ const Calculator = () => {
     try {
       const res = eval(input);
       setResult(res);
-      setLog((prev) => [...prev, `${input} = ${res}`]);
+      const entry = `${input} = ${res}`;
+      setLog((prev) => [...prev, entry]);
+      fetch('/api/calculator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ entry }),
+      });
     } catch (error) {
       alert('Invalid operation');
     }
